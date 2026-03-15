@@ -1,1 +1,57 @@
+name: Generate Firewall & EDR Feeds
 
+# Trigger this script ONLY when the master database is updated
+on:
+  push:
+    paths:
+      - 'master/threat_intel_db.jsonl'
+
+jobs:
+  build-feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Parse JSONL and Generate TXT Feeds
+        run: |
+          # 1. Create the feeds folder
+          mkdir -p feeds
+          
+          # 2. Empty the old text files so we don't get duplicates
+          > feeds/active_ips.txt
+          > feeds/active_domains.txt
+          > feeds/active_hashes.txt
+
+          # 3. Read the master database and route the indicators
+          if [ -f "master/threat_intel_db.jsonl" ]; then
+            while read -r line; do
+              # Skip any accidentally empty lines
+              [ -z "$line" ] && continue
+              
+              # Extract the type and indicator using jq
+              TYPE=$(echo "$line" | jq -r '.type // empty')
+              IOC=$(echo "$line" | jq -r '.indicator // empty')
+              
+              # Route to the correct file
+              if [ "$TYPE" == "ips" ]; then
+                echo "$IOC" >> feeds/active_ips.txt
+              elif [ "$TYPE" == "domains" ]; then
+                echo "$IOC" >> feeds/active_domains.txt
+              elif [ "$TYPE" == "file_hashes" ]; then
+                echo "$IOC" >> feeds/active_hashes.txt
+              fi
+            done < master/threat_intel_db.jsonl
+          else
+            echo "Master DB not found. Skipping."
+          fi
+
+      - name: Commit Generated Feeds Back to Repo
+        run: |
+          # 4. Pretend to be a GitHub Bot and save the files
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          git add feeds/*
+          # Only commit if there are actually new changes
+          git diff --quiet && git diff --staged --quiet || git commit -m "[AUTO] Updated raw text feeds for Firewalls/EDR"
+          git push
