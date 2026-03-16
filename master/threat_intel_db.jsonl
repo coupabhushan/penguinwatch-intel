@@ -5,3 +5,6 @@
 {"indicator":"185.220.102.54","type":"ips","confidence":"HIGH"}
 {"indicator":"badbad-domain-test.com","type":"domains","confidence":"HIGH"}
 {"indicator":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","type":"file_hashes","confidence":"HIGH"}
+{"indicator":"185.220.102.54","type":"ips","confidence":"HIGH"}
+{"indicator":"badbad-domain-test.com","type":"domains","confidence":"HIGH"}
+{"indicator":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","type":"file_hashes","confidence":"HIGH"}
